@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
@@ -49,6 +48,9 @@
       <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="Mono.Posix" />
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="gtk-gui\gui.stetic">
@@ -61,16 +63,23 @@
     <Compile Include="gtk-gui\MainWindow.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="CommandView.cs" />
-    <Compile Include="gtk-gui\EV3CommandAndControl.CommandView.cs" />
-    <Compile Include="ScollingWidgetView.cs" />
-    <Compile Include="gtk-gui\EV3CommandAndControl.ScollingWidgetView.cs" />
+    <Compile Include="Model\Command.cs" />
+    <Compile Include="Model\CommandModel.cs" />
+    <Compile Include="Widgets\CommandView.cs" />
+    <Compile Include="Widgets\ScrollableView.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EV3MessengerLib\EV3MessengerLib.csproj">
       <Project>{8E0915A9-BAAC-4CBC-A489-A699B61ED83E}</Project>
       <Name>EV3MessengerLib</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Model\" />
+    <Folder Include="Widgets\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

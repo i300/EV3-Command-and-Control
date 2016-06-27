@@ -3,8 +3,7 @@ using Gtk;
 
 namespace EV3CommandAndControl
 {
-	[System.ComponentModel.ToolboxItem(true)]
-	public partial class CommandView : Gtk.Bin
+	public class CommandView : Gtk.Bin
 	{
 		Label nameLabel;
 		Entry parameterEntry;

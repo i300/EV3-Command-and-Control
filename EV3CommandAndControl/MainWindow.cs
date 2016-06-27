@@ -4,6 +4,9 @@ using EV3CommandAndControl;
 
 public partial class MainWindow : Gtk.Window
 {
+	ScrollableView commandsView;
+	ScrollableView programView;
+
 	public MainWindow() : base(Gtk.WindowType.Toplevel)
 	{
 		SetDefaultSize(900, 500);
@@ -34,10 +37,13 @@ public partial class MainWindow : Gtk.Window
 
 		HBox hbox = new HBox(false, 2);
 
+		hbox.BorderWidth = 5;
+
 		VBox leftBox = new VBox(false, 2);
 
 		Button addNewCommandButton = new Button();
 		addNewCommandButton.Label = "Create New Command";
+		addNewCommandButton.Clicked += OnNewCommandClicked;
 
 		Alignment addNewCommandButtonAlign = new Alignment(0, 0, 0, 0);
 		addNewCommandButtonAlign.Add(addNewCommandButton);
@@ -46,8 +52,10 @@ public partial class MainWindow : Gtk.Window
 		commandPalleteLabel.Text = "Command Pallete Label";
 		commandPalleteLabel.SetAlignment(0, 0);
 
+		commandsView = new ScrollableView();
+
 		leftBox.PackStart(commandPalleteLabel, false, false, 0);
-		leftBox.PackStart(new Entry(), true, true, 0);
+		leftBox.PackStart(commandsView, true, true, 0);
 		leftBox.PackEnd(addNewCommandButtonAlign, false, false, 0);
 
 		VBox rightBox = new VBox(false, 2);
@@ -62,10 +70,10 @@ public partial class MainWindow : Gtk.Window
 		Alignment sendButtonAlign = new Alignment(1, 0, 0, 0);
 		sendButtonAlign.Add(sendButton);
 
+		programView = new ScrollableView();
+
 		rightBox.PackStart(commandQueueLabel, false, false, 0);
-		rightBox.PackStart(new CommandView(), true, true, 0);
-		rightBox.PackStart(new CommandView(), true, true, 0);
-		rightBox.PackStart(new CommandView(), true, true, 0);
+		rightBox.PackStart(programView, true, true, 0);
 		rightBox.PackEnd(sendButtonAlign, false, false, 0);
 
 		hbox.PackStart(leftBox, true, true, 0);
@@ -79,6 +87,11 @@ public partial class MainWindow : Gtk.Window
 		Add(mainBox);
 
 		ShowAll();
+	}
+
+	void OnNewCommandClicked(object sender, EventArgs e)
+	{
+		commandsView.AddWidget(new CommandView());
 	}
 
 	protected void OnDeleteEvent(object sender, DeleteEventArgs a)
