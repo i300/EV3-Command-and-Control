@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EV3CommandAndControl", "EV3CommandAndControl\EV3CommandAndControl.csproj", "{C18B6B4C-DC25-4799-99AC-B5B2D62DF495}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EV3MessengerLib", "EV3MessengerLib\EV3MessengerLib.csproj", "{8E0915A9-BAAC-4CBC-A489-A699B61ED83E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -13,5 +15,9 @@ Global
 		{C18B6B4C-DC25-4799-99AC-B5B2D62DF495}.Debug|x86.Build.0 = Debug|x86
 		{C18B6B4C-DC25-4799-99AC-B5B2D62DF495}.Release|x86.ActiveCfg = Release|x86
 		{C18B6B4C-DC25-4799-99AC-B5B2D62DF495}.Release|x86.Build.0 = Release|x86
+		{8E0915A9-BAAC-4CBC-A489-A699B61ED83E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8E0915A9-BAAC-4CBC-A489-A699B61ED83E}.Debug|x86.Build.0 = Debug|Any CPU
+		{8E0915A9-BAAC-4CBC-A489-A699B61ED83E}.Release|x86.ActiveCfg = Release|Any CPU
+		{8E0915A9-BAAC-4CBC-A489-A699B61ED83E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
