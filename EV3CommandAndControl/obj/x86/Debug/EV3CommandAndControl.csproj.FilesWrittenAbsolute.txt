@@ -1,6 +1,0 @@
-/Users/thejerishbrown/Projects/EV3CommandAndControl/EV3CommandAndControl/obj/x86/Debug/.NETFramework,Version=v4.5.AssemblyAttribute.cs
-/Users/thejerishbrown/Projects/EV3CommandAndControl/EV3CommandAndControl/obj/x86/Debug/EV3CommandAndControl.gtk-gui.gui.stetic
-/Users/thejerishbrown/Projects/EV3CommandAndControl/EV3CommandAndControl/bin/Debug/EV3CommandAndControl.exe.mdb
-/Users/thejerishbrown/Projects/EV3CommandAndControl/EV3CommandAndControl/bin/Debug/EV3CommandAndControl.exe
-/Users/thejerishbrown/Projects/EV3CommandAndControl/EV3CommandAndControl/obj/x86/Debug/EV3CommandAndControl.exe
-/Users/thejerishbrown/Projects/EV3CommandAndControl/EV3CommandAndControl/obj/x86/Debug/EV3CommandAndControl.exe.mdb

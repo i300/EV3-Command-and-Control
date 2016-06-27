@@ -1,5 +1,5 @@
-/Users/thejerishbrown/Documents/Projects/Mono/EV3MessengerLib/obj/Debug/.NETFramework,Version=v4.0,Profile=Client.AssemblyAttribute.cs
-/Users/thejerishbrown/Documents/Projects/Mono/EV3MessengerLib/bin/Debug/EV3MessengerLib.dll.mdb
-/Users/thejerishbrown/Documents/Projects/Mono/EV3MessengerLib/bin/Debug/EV3MessengerLib.dll
-/Users/thejerishbrown/Documents/Projects/Mono/EV3MessengerLib/obj/Debug/EV3MessengerLib.dll
-/Users/thejerishbrown/Documents/Projects/Mono/EV3MessengerLib/obj/Debug/EV3MessengerLib.dll.mdb
+/Users/thejerishbrown/Projects/EV3CommandAndControl/EV3MessengerLib/obj/Debug/.NETFramework,Version=v4.0,Profile=Client.AssemblyAttribute.cs
+/Users/thejerishbrown/Projects/EV3CommandAndControl/EV3MessengerLib/bin/Debug/EV3MessengerLib.dll.mdb
+/Users/thejerishbrown/Projects/EV3CommandAndControl/EV3MessengerLib/bin/Debug/EV3MessengerLib.dll
+/Users/thejerishbrown/Projects/EV3CommandAndControl/EV3MessengerLib/obj/Debug/EV3MessengerLib.dll
+/Users/thejerishbrown/Projects/EV3CommandAndControl/EV3MessengerLib/obj/Debug/EV3MessengerLib.dll.mdb
