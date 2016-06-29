@@ -67,6 +67,7 @@
     <Compile Include="Model\CommandModel.cs" />
     <Compile Include="Widgets\CommandView.cs" />
     <Compile Include="Widgets\ScrollableView.cs" />
+    <Compile Include="Widgets\CommandTemplateView.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EV3MessengerLib\EV3MessengerLib.csproj">

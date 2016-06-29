@@ -83,7 +83,9 @@ public partial class MainWindow
 		this.vbox1.Name = "vbox1";
 		this.vbox1.Spacing = 6;
 		// Container child vbox1.Gtk.Box+BoxChild
-		this.UIManager.AddUiFromString("<ui><menubar name='menubar1'><menu name='FileAction1' action='FileAction1'/><menu name='ViewAction2' action='ViewAction2'/><menu name='ConnectionStatusAction2' action='ConnectionStatusAction2'/></menubar></ui>");
+		this.UIManager.AddUiFromString("<ui><menubar name=\'menubar1\'><menu name=\'FileAction1\' action=\'FileAction1\'/><menu" +
+				" name=\'ViewAction2\' action=\'ViewAction2\'/><menu name=\'ConnectionStatusAction2\' a" +
+				"ction=\'ConnectionStatusAction2\'/></menubar></ui>");
 		this.menubar1 = ((global::Gtk.MenuBar)(this.UIManager.GetWidget("/menubar1")));
 		this.menubar1.Name = "menubar1";
 		this.vbox1.Add(this.menubar1);

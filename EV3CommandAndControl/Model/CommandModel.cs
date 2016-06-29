@@ -6,32 +6,63 @@ namespace EV3CommandAndControl
 {
 	public class CommandModel
 	{
-		LinkedList<Command> commands;
-		ObservableCollection<int> program;
+		private static CommandModel instance;
+
+		ObservableCollection<Command> commands;
+		ObservableCollection<Command> program;
+
+		int idCounter = 0;
 		
 		public CommandModel()
 		{
-			commands = new LinkedList<Command>();
-			program = new ObservableCollection<int>();
+			commands = new ObservableCollection<Command>();
+			program = new ObservableCollection<Command>();
 		}
 
-		public void AddCommand(Command c)
+		public void SetCommandsChangedHandler(System.Collections.Specialized.NotifyCollectionChangedEventHandler handler)
 		{
-			commands.AddLast(c);
+			commands.CollectionChanged += handler;
 		}
 
-		public void ChangeCommand(Command c, Command newC)
+		public void SetProgramChangedHandler(System.Collections.Specialized.NotifyCollectionChangedEventHandler handler)
 		{
-			if (c.id == newC.id)
+			program.CollectionChanged += handler;
+		}
+
+		public static CommandModel Instance
+		{
+			get
 			{
-				commands.AddAfter(commands.Find(c), newC);
-				commands.Remove(c);
+				if (instance == null)
+				{
+					instance = new CommandModel();
+				}
+				return instance;
 			}
+		}
+
+		public int NewCommand()
+		{
+			Command c = new Command(idCounter++);
+			commands.Add(c);
+
+			return c.ID;
+		}
+
+		public void ChangeCommandName(int id, string name)
+		{
+			commands.
+		}
+
+		public void RemoveCommand(Command c)
+		{
+			commands.Remove(c);
+			program.Remove(c);
 		}
 
 		public void AddCommandToProgram(Command c)
 		{
-			program.Add(c.id);
+			program.Add(c);
 		}
 
 		public void MoveCommandInProgram(int oldIndex, int newIndex)
@@ -39,12 +70,12 @@ namespace EV3CommandAndControl
 			program.Move(oldIndex, newIndex);
 		}
 
-		public LinkedList<Command> GetCommands()
+		public ObservableCollection<Command> GetCommands()
 		{
 			return commands;
 		}
 
-		public ObservableCollection<int> GetProgram()
+		public ObservableCollection<Command> GetProgram()
 		{
 			return program;
 		}

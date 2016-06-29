@@ -7,11 +7,16 @@ public partial class MainWindow : Gtk.Window
 	ScrollableView commandsView;
 	ScrollableView programView;
 
+	CommandModel model;
+
 	public MainWindow() : base(Gtk.WindowType.Toplevel)
 	{
 		SetDefaultSize(900, 500);
 		SetPosition(WindowPosition.Center);
 		DeleteEvent += delegate { Application.Quit(); };
+
+		model = CommandModel.Instance;
+		//model.SetCommandsChangedHandler(
 
 		VBox mainBox = new VBox(false, 2);
 
@@ -89,9 +94,29 @@ public partial class MainWindow : Gtk.Window
 		ShowAll();
 	}
 
+	void OnCommandsChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+	{
+		if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+		{
+			foreach (Command c in e.NewItems)
+			{
+				CommandTemplateView view = new CommandTemplateView(c.ID);
+				commandsView.AddWidget(view);
+			}
+		}
+		else if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Move)
+		{
+		}
+		else if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Remove)
+		{
+		}
+
+
+	}
+
 	void OnNewCommandClicked(object sender, EventArgs e)
 	{
-		commandsView.AddWidget(new CommandView());
+		model.NewCommand();
 	}
 
 	protected void OnDeleteEvent(object sender, DeleteEventArgs a)
