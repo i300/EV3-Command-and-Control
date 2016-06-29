@@ -30,6 +30,11 @@ namespace EV3CommandAndControl
 			listView.PackStart(w, false, false, 0);
 		}
 
+		public void RemoveWidget(Widget w)
+		{
+			listView.Remove(w);
+		}
+
 		protected override void OnSizeAllocated(Gdk.Rectangle allocation)
 		{
 			if (this.Child != null)

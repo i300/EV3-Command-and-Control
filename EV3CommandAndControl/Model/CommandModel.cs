@@ -4,29 +4,29 @@ using System.Collections.ObjectModel;
 
 namespace EV3CommandAndControl
 {
+	public class CommandEventArgs : EventArgs
+	{
+		public readonly Command command;
+
+		public CommandEventArgs(Command c)
+		{
+			this.command = c;
+		}
+	}
+
 	public class CommandModel
 	{
 		private static CommandModel instance;
 
-		ObservableCollection<Command> commands;
-		ObservableCollection<Command> program;
+		Dictionary<int, Command> commands;
 
-		int idCounter = 0;
+		public event EventHandler<CommandEventArgs> CommandAddedEvent;
+		public event EventHandler<CommandEventArgs> CommandChangedEvent;
+		public event EventHandler<CommandEventArgs> CommandRemovedEvent;
 		
 		public CommandModel()
 		{
-			commands = new ObservableCollection<Command>();
-			program = new ObservableCollection<Command>();
-		}
-
-		public void SetCommandsChangedHandler(System.Collections.Specialized.NotifyCollectionChangedEventHandler handler)
-		{
-			commands.CollectionChanged += handler;
-		}
-
-		public void SetProgramChangedHandler(System.Collections.Specialized.NotifyCollectionChangedEventHandler handler)
-		{
-			program.CollectionChanged += handler;
+			commands = new Dictionary<int, Command>();
 		}
 
 		public static CommandModel Instance
@@ -41,50 +41,80 @@ namespace EV3CommandAndControl
 			}
 		}
 
-		public int NewCommand()
+		public Command NewCommand()
 		{
-			Command c = new Command(idCounter++);
-			commands.Add(c);
+			int newID = 0;
 
-			return c.ID;
+			for (;;)
+			{
+				if (!commands.ContainsKey(++newID))
+				{
+					break;
+				}
+			}
+
+			Command c = new Command(newID);
+
+			commands.Add(newID, c);
+
+			OnRaiseCommandAddedEvent(new CommandEventArgs(c));
+
+			return c;
 		}
 
 		public void ChangeCommandName(int id, string name)
 		{
-			commands.
+			if (commands.ContainsKey(id))
+			{
+				Command c = commands[id];
+				c.name = name;
+				commands[id] = c;
+
+				OnRaiseCommandChangedEvent(new CommandEventArgs(c));
+			}
 		}
 
-		public void RemoveCommand(Command c)
+		public void RemoveCommand(int id)
 		{
-			commands.Remove(c);
-			program.Remove(c);
+			if (commands.ContainsKey(id))
+			{
+				Command c = commands[id];
+				commands.Remove(id);
+
+				OnRaiseCommandRemovedEvent(new CommandEventArgs(c));;
+			}
 		}
 
-		public void AddCommandToProgram(Command c)
+		protected virtual void OnRaiseCommandAddedEvent(CommandEventArgs e)
 		{
-			program.Add(c);
+			EventHandler<CommandEventArgs> handler = CommandAddedEvent;
+
+			if (handler != null)
+			{
+				handler(this, e);
+			}
 		}
 
-		public void MoveCommandInProgram(int oldIndex, int newIndex)
+		protected virtual void OnRaiseCommandChangedEvent(CommandEventArgs e)
 		{
-			program.Move(oldIndex, newIndex);
+			EventHandler<CommandEventArgs> handler = CommandChangedEvent;
+
+			if (handler != null)
+			{
+				handler(this, e);
+			}
 		}
 
-		public ObservableCollection<Command> GetCommands()
+		protected virtual void OnRaiseCommandRemovedEvent(CommandEventArgs e)
 		{
-			return commands;
+			EventHandler<CommandEventArgs> handler = CommandRemovedEvent;
+
+			if (handler != null)
+			{
+				handler(this, e);
+			}
 		}
 
-		public ObservableCollection<Command> GetProgram()
-		{
-			return program;
-		}
-
-		public string ExportJSON()
-		{
-			string json = Newtonsoft.Json.JsonConvert.SerializeObject(this);
-			return json;
-		}
 	}
 }
 

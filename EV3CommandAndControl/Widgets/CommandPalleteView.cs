@@ -3,23 +3,23 @@ using Gtk;
 
 namespace EV3CommandAndControl
 {
-	public class CommandTemplateView : Gtk.Bin
+	public class CommandPalleteView : Gtk.Bin
 	{
 		Label idLabel;
 		Entry nameEntry;
 		Button insertButton;
 		Button removeButton;
 
-		int commandID;
+		public readonly int id;
 
-		public CommandTemplateView(ref Command c)
+		public CommandPalleteView(Command c)
 		{
-			commandID = c.ID;
+			id = c.id;
 
 			HBox hbox = new HBox(false, 2);
 
 			idLabel = new Label();
-			idLabel.Text = c.ID.ToString();
+			idLabel.Text = c.id.ToString();
 
 			nameEntry = new Entry();
 			nameEntry.Text = c.name;
@@ -45,7 +45,7 @@ namespace EV3CommandAndControl
 
 		void OnNameChanged(object sender, EventArgs e)
 		{
-
+			CommandModel.Instance.ChangeCommandName(id, nameEntry.Text);
 		}
 
 		void OnInsertClicked(object sender, EventArgs e)
@@ -55,7 +55,7 @@ namespace EV3CommandAndControl
 
 		void OnDeleteClicked(object sender, EventArgs e)
 		{
-			CommandModel.Instance.RemoveCommand(command);
+			CommandModel.Instance.RemoveCommand(id);
 		}
 
 		protected override void OnSizeAllocated(Gdk.Rectangle allocation)

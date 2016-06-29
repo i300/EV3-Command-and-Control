@@ -1,11 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using Gtk;
 using EV3CommandAndControl;
 
 public partial class MainWindow : Gtk.Window
 {
-	ScrollableView commandsView;
-	ScrollableView programView;
+	ScrollableView palleteView;
+	ScrollableView queueView;
+
+	List<CommandPalleteView> palleteViews;
+	List<CommandView> commandViews;
 
 	CommandModel model;
 
@@ -16,7 +20,11 @@ public partial class MainWindow : Gtk.Window
 		DeleteEvent += delegate { Application.Quit(); };
 
 		model = CommandModel.Instance;
-		//model.SetCommandsChangedHandler(
+		model.CommandAddedEvent += OnCommandAdded;
+		model.CommandRemovedEvent += OnCommandRemoved;
+
+		palleteViews = new List<CommandPalleteView>();
+		commandViews = new List<CommandView>();
 
 		VBox mainBox = new VBox(false, 2);
 
@@ -48,19 +56,19 @@ public partial class MainWindow : Gtk.Window
 
 		Button addNewCommandButton = new Button();
 		addNewCommandButton.Label = "Create New Command";
-		addNewCommandButton.Clicked += OnNewCommandClicked;
+		addNewCommandButton.Clicked += delegate { model.NewCommand(); };
 
 		Alignment addNewCommandButtonAlign = new Alignment(0, 0, 0, 0);
 		addNewCommandButtonAlign.Add(addNewCommandButton);
 
 		Label commandPalleteLabel = new Label();
-		commandPalleteLabel.Text = "Command Pallete Label";
+		commandPalleteLabel.Text = "Command Pallete";
 		commandPalleteLabel.SetAlignment(0, 0);
 
-		commandsView = new ScrollableView();
+		palleteView = new ScrollableView();
 
 		leftBox.PackStart(commandPalleteLabel, false, false, 0);
-		leftBox.PackStart(commandsView, true, true, 0);
+		leftBox.PackStart(palleteView, true, true, 0);
 		leftBox.PackEnd(addNewCommandButtonAlign, false, false, 0);
 
 		VBox rightBox = new VBox(false, 2);
@@ -75,10 +83,10 @@ public partial class MainWindow : Gtk.Window
 		Alignment sendButtonAlign = new Alignment(1, 0, 0, 0);
 		sendButtonAlign.Add(sendButton);
 
-		programView = new ScrollableView();
+		queueView = new ScrollableView();
 
 		rightBox.PackStart(commandQueueLabel, false, false, 0);
-		rightBox.PackStart(programView, true, true, 0);
+		rightBox.PackStart(queueView, true, true, 0);
 		rightBox.PackEnd(sendButtonAlign, false, false, 0);
 
 		hbox.PackStart(leftBox, true, true, 0);
@@ -94,29 +102,22 @@ public partial class MainWindow : Gtk.Window
 		ShowAll();
 	}
 
-	void OnCommandsChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+	void OnCommandAdded(object sender, CommandEventArgs e)
 	{
-		if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
-		{
-			foreach (Command c in e.NewItems)
-			{
-				CommandTemplateView view = new CommandTemplateView(c.ID);
-				commandsView.AddWidget(view);
-			}
-		}
-		else if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Move)
-		{
-		}
-		else if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Remove)
-		{
-		}
-
-
+		CommandPalleteView view = new CommandPalleteView(e.command);
+		palleteView.AddWidget(view);
+		palleteViews.Add(view);
 	}
 
-	void OnNewCommandClicked(object sender, EventArgs e)
+	void OnCommandRemoved(object sender, CommandEventArgs e)
 	{
-		model.NewCommand();
+		foreach (CommandPalleteView view in palleteViews)
+		{
+			if (view.id == e.command.id)
+			{
+				palleteView.RemoveWidget(view);
+			}
+		}
 	}
 
 	protected void OnDeleteEvent(object sender, DeleteEventArgs a)

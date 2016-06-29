@@ -11,9 +11,13 @@ namespace EV3CommandAndControl
 		Button moveDownButton;
 		Button removeButton;
 
-		public CommandView()
+		public readonly int id;
+
+		public CommandView(int id)
 		{
 			HBox hbox = new HBox(false, 2);
+
+			this.id = id;
 
 			nameLabel = new Label();
 			nameLabel.Text = "Name";
