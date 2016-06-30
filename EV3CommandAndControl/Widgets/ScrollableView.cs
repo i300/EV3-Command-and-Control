@@ -4,7 +4,8 @@ namespace EV3CommandAndControl
 {
 	public class ScrollableView : Gtk.Bin
 	{
-		protected VBox listView;
+		VBox listView;
+		Alignment listViewAlignment;
 
 		public ScrollableView()
 		{
@@ -12,10 +13,10 @@ namespace EV3CommandAndControl
 
 			listView = new VBox(true, 2);
 
-			Alignment align = new Alignment(0, 0, 1, 0);
-			align.Add(listView);
+			listViewAlignment = new Alignment(0, 0, 1, 0);
+			listViewAlignment.Add(listView);
 
-			scrollView.AddWithViewport(align);
+			scrollView.AddWithViewport(listViewAlignment);
 
 			Viewport scrollViewport = (Viewport)scrollView.Child;
 			scrollViewport.ShadowType = ShadowType.None;
@@ -33,6 +34,14 @@ namespace EV3CommandAndControl
 		public void RemoveWidget(Widget w)
 		{
 			listView.Remove(w);
+		}
+
+		public void RemoveAllWidgets()
+		{
+			foreach (Widget w in listView.AllChildren)
+			{
+				listView.Remove(w);
+			}
 		}
 
 		protected override void OnSizeAllocated(Gdk.Rectangle allocation)

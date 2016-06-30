@@ -5,44 +5,59 @@ namespace EV3CommandAndControl
 {
 	public class CommandView : Gtk.Bin
 	{
-		Label nameLabel;
-		Entry parameterEntry;
-		Button moveUpButton;
-		Button moveDownButton;
+		Label idLabel;
+		Entry nameEntry;
+		Button insertButton;
 		Button removeButton;
 
 		public readonly int id;
 
-		public CommandView(int id)
+		public CommandView(Command c)
 		{
+			id = c.id;
+
 			HBox hbox = new HBox(false, 2);
 
-			this.id = id;
+			idLabel = new Label();
+			idLabel.Text = c.id.ToString();
 
-			nameLabel = new Label();
-			nameLabel.Text = "Name";
+			nameEntry = new Entry();
+			nameEntry.Text = c.name;
+			nameEntry.Changed += OnNameChanged;
 
-			parameterEntry = new Entry();
-			parameterEntry.WidthRequest = 80;
-
-			moveUpButton = new Button();
-			moveUpButton.Label = "▲";
-
-			moveDownButton = new Button();
-			moveDownButton.Label = "▼";
+			insertButton = new Button();
+			insertButton.Label = "▶";
+			insertButton.Clicked += OnInsertClicked;
 
 			removeButton = new Button();
-			removeButton.Label = "Remove";
+			removeButton.Label = "Delete";
+			removeButton.Clicked += OnDeleteClicked;
 
-			hbox.PackStart(nameLabel, true, true, 0);
-			hbox.PackStart(parameterEntry, false, false, 0);
-			hbox.PackStart(moveUpButton, false, false, 0);
-			hbox.PackStart(moveDownButton, false, false, 0);
+			hbox.PackStart(idLabel, false, false, 0);
+			hbox.PackStart(nameEntry, true, true, 0);
+			hbox.PackStart(insertButton, false, false, 0);
 			hbox.PackEnd(removeButton, false, false, 0);
 
 			Add(hbox);
 
 			ShowAll();
+		}
+
+		void OnNameChanged(object sender, EventArgs e)
+		{
+			CommandModel.Instance.ChangeCommandName(id, nameEntry.Text);
+		}
+
+		void OnInsertClicked(object sender, EventArgs e)
+		{
+			CommandModel model = CommandModel.Instance;
+
+			model.AddCommandToProgram(model.GetCommand(id));
+		}
+
+		void OnDeleteClicked(object sender, EventArgs e)
+		{
+			CommandModel.Instance.RemoveCommand(id);
 		}
 
 		protected override void OnSizeAllocated(Gdk.Rectangle allocation)

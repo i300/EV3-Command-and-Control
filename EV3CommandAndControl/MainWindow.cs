@@ -8,8 +8,8 @@ public partial class MainWindow : Gtk.Window
 	ScrollableView palleteView;
 	ScrollableView queueView;
 
-	List<CommandPalleteView> palleteViews;
-	List<CommandView> commandViews;
+	List<CommandView> palleteViews;
+	List<ProgramCommandView> commandViews;
 
 	CommandModel model;
 
@@ -22,9 +22,11 @@ public partial class MainWindow : Gtk.Window
 		model = CommandModel.Instance;
 		model.CommandAddedEvent += OnCommandAdded;
 		model.CommandRemovedEvent += OnCommandRemoved;
+		model.ProgramCommandAddedEvent += OnProgramCommandAdded;
+		model.ProgramCommandRemovedEvent += OnProgramCommandRemoved;
 
-		palleteViews = new List<CommandPalleteView>();
-		commandViews = new List<CommandView>();
+		palleteViews = new List<CommandView>();
+		commandViews = new List<ProgramCommandView>();
 
 		VBox mainBox = new VBox(false, 2);
 
@@ -104,19 +106,45 @@ public partial class MainWindow : Gtk.Window
 
 	void OnCommandAdded(object sender, CommandEventArgs e)
 	{
-		CommandPalleteView view = new CommandPalleteView(e.command);
+		CommandView view = new CommandView(e.command);
 		palleteView.AddWidget(view);
 		palleteViews.Add(view);
 	}
 
 	void OnCommandRemoved(object sender, CommandEventArgs e)
 	{
-		foreach (CommandPalleteView view in palleteViews)
+		foreach (CommandView view in palleteViews)
 		{
 			if (view.id == e.command.id)
 			{
 				palleteView.RemoveWidget(view);
 			}
+		}
+
+		foreach (ProgramCommandView view in commandViews)
+		{
+			if (view.id == e.command.id)
+			{
+				queueView.RemoveWidget(view);
+			}
+		}
+	}
+
+	void OnProgramCommandAdded(object sender, ProgramCommandEventArgs e)
+	{
+		ProgramCommandView view = new ProgramCommandView(e.command.command.id, e.command.index);
+		queueView.AddWidget(view);
+		commandViews.Add(view);
+	}
+
+	void OnProgramCommandRemoved(object sender, ProgramCommandEventArgs e)
+	{
+		queueView.RemoveAllWidgets();
+
+		foreach (ProgramCommand command in model.GetProgram())
+		{
+			ProgramCommandView view = new ProgramCommandView(command.command.id, command.index);
+			queueView.AddWidget(view);
 		}
 	}
 

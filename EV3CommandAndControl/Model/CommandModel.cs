@@ -14,19 +14,34 @@ namespace EV3CommandAndControl
 		}
 	}
 
+	public class ProgramCommandEventArgs : EventArgs
+	{
+		public readonly ProgramCommand command;
+
+		public ProgramCommandEventArgs(ProgramCommand c)
+		{
+			this.command = c;
+		}
+	}
+
 	public class CommandModel
 	{
 		private static CommandModel instance;
 
 		Dictionary<int, Command> commands;
+		ObservableCollection<ProgramCommand> program;
 
 		public event EventHandler<CommandEventArgs> CommandAddedEvent;
 		public event EventHandler<CommandEventArgs> CommandChangedEvent;
 		public event EventHandler<CommandEventArgs> CommandRemovedEvent;
+
+		public event EventHandler<ProgramCommandEventArgs> ProgramCommandAddedEvent;
+		public event EventHandler<ProgramCommandEventArgs> ProgramCommandRemovedEvent;
 		
 		public CommandModel()
 		{
 			commands = new Dictionary<int, Command>();
+			program = new ObservableCollection<ProgramCommand>();
 		}
 
 		public static CommandModel Instance
@@ -39,6 +54,16 @@ namespace EV3CommandAndControl
 				}
 				return instance;
 			}
+		}
+
+		public Dictionary<int, Command> GetCommands()
+		{
+			return commands;
+		}
+
+		public ObservableCollection<ProgramCommand> GetProgram()
+		{
+			return program;
 		}
 
 		public Command NewCommand()
@@ -62,6 +87,17 @@ namespace EV3CommandAndControl
 			return c;
 		}
 
+		public Command GetCommand(int id)
+		{
+			if (commands.ContainsKey(id))
+			{
+				return commands[id];
+			}
+			else {
+				return null;
+			}
+		}
+
 		public void ChangeCommandName(int id, string name)
 		{
 			if (commands.ContainsKey(id))
@@ -83,6 +119,22 @@ namespace EV3CommandAndControl
 
 				OnRaiseCommandRemovedEvent(new CommandEventArgs(c));;
 			}
+		}
+
+		public void AddCommandToProgram(Command c)
+		{
+			ProgramCommand command = new ProgramCommand(program.Count, c);
+			program.Add(command);
+
+			OnRaiseProgramCommandAddedEvent(new ProgramCommandEventArgs(command));
+		}
+
+		public void RemoveCommandFromProgram(int index)
+		{
+			ProgramCommand c = program[index];
+			program.RemoveAt(index);
+
+			OnRaiseProgramCommandRemovedEvent(new ProgramCommandEventArgs(c));
 		}
 
 		protected virtual void OnRaiseCommandAddedEvent(CommandEventArgs e)
@@ -115,6 +167,25 @@ namespace EV3CommandAndControl
 			}
 		}
 
+		protected virtual void OnRaiseProgramCommandAddedEvent(ProgramCommandEventArgs e)
+		{
+			EventHandler<ProgramCommandEventArgs> handler = ProgramCommandAddedEvent;
+
+			if (handler != null)
+			{
+				handler(this, e);
+			}
+		}
+
+		protected virtual void OnRaiseProgramCommandRemovedEvent(ProgramCommandEventArgs e)
+		{
+			EventHandler<ProgramCommandEventArgs> handler = ProgramCommandRemovedEvent;
+
+			if (handler != null)
+			{
+				handler(this, e);
+			}
+		}
 	}
 }
 
