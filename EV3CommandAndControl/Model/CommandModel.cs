@@ -29,7 +29,7 @@ namespace EV3CommandAndControl
 		private static CommandModel instance;
 
 		Dictionary<int, Command> commands;
-		ObservableCollection<ProgramCommand> program;
+		List<ProgramCommand> program;
 
 		public event EventHandler<CommandEventArgs> CommandAddedEvent;
 		public event EventHandler<CommandEventArgs> CommandChangedEvent;
@@ -41,7 +41,7 @@ namespace EV3CommandAndControl
 		public CommandModel()
 		{
 			commands = new Dictionary<int, Command>();
-			program = new ObservableCollection<ProgramCommand>();
+			program = new List<ProgramCommand>();
 		}
 
 		public static CommandModel Instance
@@ -61,7 +61,7 @@ namespace EV3CommandAndControl
 			return commands;
 		}
 
-		public ObservableCollection<ProgramCommand> GetProgram()
+		public List<ProgramCommand> GetProgram()
 		{
 			return program;
 		}
@@ -129,12 +129,62 @@ namespace EV3CommandAndControl
 			OnRaiseProgramCommandAddedEvent(new ProgramCommandEventArgs(command));
 		}
 
+		public void SetProgramCommandParameter(int index, int param)
+		{
+			program[index].parameter = param;
+		}
+
+		public void MoveCommandInProgram(int fromIndex, int toIndex)
+		{
+			ProgramCommand commandA, commandB;
+
+			try
+			{
+				// Store values of from and to indexes
+				commandA = program[fromIndex];
+				commandB = program[toIndex];	
+			}
+			catch (Exception e)
+			{
+				// Indexes are out of range, break out
+				System.Console.WriteLine(e.Message);
+				return;
+			}
+
+			// Move command A to the to index
+			program[toIndex] = commandA;
+			commandA.index = toIndex;
+
+			// Move command B to the from index
+			program[fromIndex] = commandB;
+			commandB.index = fromIndex;
+
+			// Raise event
+			OnRaiseProgramCommandRemovedEvent(new ProgramCommandEventArgs(new ProgramCommand(-1, null)));
+		}
+
 		public void RemoveCommandFromProgram(int index)
 		{
-			ProgramCommand c = program[index];
+			// Remove program from program list
+			ProgramCommand command = program[index];
 			program.RemoveAt(index);
 
-			OnRaiseProgramCommandRemovedEvent(new ProgramCommandEventArgs(c));
+			// Update stored indexes to reflect changes in program list
+			foreach (ProgramCommand c in program)
+			{
+				if (c.index > index)
+				{
+					program[program.IndexOf(c)].index -= 1;
+				}
+			}
+
+			// Raise program command removed event
+			OnRaiseProgramCommandRemovedEvent(new ProgramCommandEventArgs(command));
+		}
+
+		public string ProgramToJSON()
+		{
+			return Newtonsoft.Json.JsonConvert.SerializeObject(program);
 		}
 
 		protected virtual void OnRaiseCommandAddedEvent(CommandEventArgs e)

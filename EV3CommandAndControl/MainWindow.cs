@@ -8,8 +8,8 @@ public partial class MainWindow : Gtk.Window
 	ScrollableView palleteView;
 	ScrollableView queueView;
 
-	List<CommandView> palleteViews;
-	List<ProgramCommandView> commandViews;
+	List<CommandView> commandViews;
+	List<ProgramCommandView> programCommandViews;
 
 	CommandModel model;
 
@@ -25,8 +25,8 @@ public partial class MainWindow : Gtk.Window
 		model.ProgramCommandAddedEvent += OnProgramCommandAdded;
 		model.ProgramCommandRemovedEvent += OnProgramCommandRemoved;
 
-		palleteViews = new List<CommandView>();
-		commandViews = new List<ProgramCommandView>();
+		commandViews = new List<CommandView>();
+		programCommandViews = new List<ProgramCommandView>();
 
 		VBox mainBox = new VBox(false, 2);
 
@@ -80,6 +80,9 @@ public partial class MainWindow : Gtk.Window
 		commandQueueLabel.SetAlignment(0, 0);
 
 		Button sendButton = new Button();
+		sendButton.Clicked += delegate {
+			System.Console.WriteLine(CommandModel.Instance.ProgramToJSON());
+		};
 		sendButton.Label = "Send";
 
 		Alignment sendButtonAlign = new Alignment(1, 0, 0, 0);
@@ -108,12 +111,12 @@ public partial class MainWindow : Gtk.Window
 	{
 		CommandView view = new CommandView(e.command);
 		palleteView.AddWidget(view);
-		palleteViews.Add(view);
+		commandViews.Add(view);
 	}
 
 	void OnCommandRemoved(object sender, CommandEventArgs e)
 	{
-		foreach (CommandView view in palleteViews)
+		foreach (CommandView view in commandViews)
 		{
 			if (view.id == e.command.id)
 			{
@@ -121,7 +124,7 @@ public partial class MainWindow : Gtk.Window
 			}
 		}
 
-		foreach (ProgramCommandView view in commandViews)
+		foreach (ProgramCommandView view in programCommandViews)
 		{
 			if (view.id == e.command.id)
 			{
@@ -132,19 +135,25 @@ public partial class MainWindow : Gtk.Window
 
 	void OnProgramCommandAdded(object sender, ProgramCommandEventArgs e)
 	{
-		ProgramCommandView view = new ProgramCommandView(e.command.command.id, e.command.index);
+		ProgramCommandView view = new ProgramCommandView(e.command);
 		queueView.AddWidget(view);
-		commandViews.Add(view);
+		programCommandViews.Add(view);
 	}
 
 	void OnProgramCommandRemoved(object sender, ProgramCommandEventArgs e)
 	{
-		queueView.RemoveAllWidgets();
+		foreach (ProgramCommandView view in programCommandViews)
+		{
+			view.Destroy();
+		}
+
+		programCommandViews.Clear();
 
 		foreach (ProgramCommand command in model.GetProgram())
 		{
-			ProgramCommandView view = new ProgramCommandView(command.command.id, command.index);
+			ProgramCommandView view = new ProgramCommandView(command);
 			queueView.AddWidget(view);
+			programCommandViews.Add(view);
 		}
 	}
 

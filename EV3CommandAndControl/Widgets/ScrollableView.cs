@@ -36,14 +36,6 @@ namespace EV3CommandAndControl
 			listView.Remove(w);
 		}
 
-		public void RemoveAllWidgets()
-		{
-			foreach (Widget w in listView.AllChildren)
-			{
-				listView.Remove(w);
-			}
-		}
-
 		protected override void OnSizeAllocated(Gdk.Rectangle allocation)
 		{
 			if (this.Child != null)

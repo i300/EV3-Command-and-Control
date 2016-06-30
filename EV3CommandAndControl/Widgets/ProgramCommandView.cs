@@ -14,23 +14,36 @@ namespace EV3CommandAndControl
 		public readonly int id;
 		public readonly int index;
 
-		public ProgramCommandView(int id, int index)
+		public ProgramCommandView(ProgramCommand c)
 		{
 			HBox hbox = new HBox(false, 2);
 
-			this.id = id;
-			this.id = index;
+			this.id = c.command.id;
+			this.index = c.index;
 
 			nameLabel = new Label();
 			nameLabel.Text = CommandModel.Instance.GetCommand(id).name;
 
 			parameterEntry = new Entry();
+			parameterEntry.Text = c.parameter.ToString();
+			parameterEntry.Changed += delegate {
+				int newParameter;
+				int.TryParse(parameterEntry.Text, out newParameter);
+				CommandModel.Instance.SetProgramCommandParameter(this.index, newParameter);
+			};
 			parameterEntry.WidthRequest = 80;
 
 			moveUpButton = new Button();
+			moveUpButton.Clicked += delegate {
+				CommandModel.Instance.MoveCommandInProgram(index, index - 1);
+			};
 			moveUpButton.Label = "▲";
 
 			moveDownButton = new Button();
+			moveDownButton.Clicked += delegate
+			{
+				CommandModel.Instance.MoveCommandInProgram(index, index + 1);
+			};
 			moveDownButton.Label = "▼";
 
 			removeButton = new Button();
@@ -74,6 +87,13 @@ namespace EV3CommandAndControl
 			{
 				requisition = this.Child.SizeRequest();
 			}
+		}
+
+		public override void Destroy()
+		{
+			CommandModel.Instance.CommandChangedEvent -= CommandNameChanged;
+
+			base.Destroy();
 		}
 	}
 }
