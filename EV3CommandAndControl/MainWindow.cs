@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Gtk;
 using EV3CommandAndControl;
+using EV3MessengerLib;
 
 public partial class MainWindow : Gtk.Window
 {
@@ -29,22 +30,42 @@ public partial class MainWindow : Gtk.Window
 		commandViews = new List<ProgramCommandView>();
 
 		VBox mainBox = new VBox(false, 2);
-
 		MenuBar mb = new MenuBar();
 
-		MenuItem file = new MenuItem("File");
 		Menu fileMenu = new Menu();
+		MenuItem file = new MenuItem("File");
 		file.Submenu = fileMenu;
-		mb.Append(file);
 
-		MenuItem view = new MenuItem("View");
 		Menu viewMenu = new Menu();
-		file.Submenu = viewMenu;
-		mb.Append(view);
+		MenuItem view = new MenuItem("View");
+		view.Submenu = viewMenu;
 
-		MenuItem connectionStatus = new MenuItem("Connection Status");
 		Menu connectionMenu = new Menu();
-		file.Submenu = connectionMenu;
+		MenuItem connectionStatus = new MenuItem("Connection Status");
+		connectionStatus.Submenu = connectionMenu;
+
+		MenuItem saveAs = new MenuItem("Save as...");
+		saveAs.Activated += saveCommands;
+		fileMenu.Append(saveAs);
+
+		MenuItem loadFile = new MenuItem("Load");
+		loadFile.Activated += loadCommands;
+		fileMenu.Append(loadFile);
+
+		MenuItem simpleView = new MenuItem("Simple View");
+		simpleView.Activated += switchView;
+		viewMenu.Append(simpleView);
+
+		MenuItem advancedView = new MenuItem("Advanced View");
+		advancedView.Activated += switchView;
+		viewMenu.Append(advancedView);
+
+		MenuItem tryConnect = new MenuItem("Connect");
+		tryConnect.Activated += connectionUI;
+		connectionMenu.Append(tryConnect);
+
+		mb.Append(file);
+		mb.Append(view);
 		mb.Append(connectionStatus);
 
 		Statusbar statusbar = new Statusbar();
@@ -102,6 +123,27 @@ public partial class MainWindow : Gtk.Window
 		Add(mainBox);
 
 		ShowAll();
+	}
+
+	void switchView(object sender, EventArgs args)
+	{
+
+	}
+
+	void loadCommands(object sender, EventArgs args)
+	{
+
+	}
+
+	void saveCommands(object sender, EventArgs args)
+	{
+		
+	}
+
+	void connectionUI(object sender, EventArgs args)
+	{
+		ConnectionWindow w = new ConnectionWindow();
+		w.Show();
 	}
 
 	void OnCommandAdded(object sender, CommandEventArgs e)
