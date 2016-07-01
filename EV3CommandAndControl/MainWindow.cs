@@ -9,10 +9,28 @@ public partial class MainWindow : Gtk.Window
 	ScrollableView palleteView;
 	ScrollableView queueView;
 
+	Statusbar statusbar;
+
+	Button sendButton;
+
 	List<CommandView> commandViews;
 	List<ProgramCommandView> programCommandViews;
 
 	CommandModel model;
+
+	private static EV3Messenger messenger;
+
+	public static EV3Messenger MessengerInstance
+	{
+		get
+		{
+			if (messenger == null)
+			{
+				messenger = new EV3Messenger();
+			}
+			return messenger;
+		}
+	}
 
 	public MainWindow() : base(Gtk.WindowType.Toplevel)
 	{
@@ -25,6 +43,11 @@ public partial class MainWindow : Gtk.Window
 		model.CommandRemovedEvent += OnCommandRemoved;
 		model.ProgramCommandAddedEvent += OnProgramCommandAdded;
 		model.ProgramCommandRemovedEvent += OnProgramCommandRemoved;
+
+		messenger = MainWindow.MessengerInstance;
+
+		// TODO Remove this code-- for debugging only
+		//messenger.Connect("/dev/tty.EV3-SerialPort");
 
 		commandViews = new List<CommandView>();
 		programCommandViews = new List<ProgramCommandView>();
@@ -45,30 +68,30 @@ public partial class MainWindow : Gtk.Window
 		connectionStatus.Submenu = connectionMenu;
 
 		MenuItem saveAs = new MenuItem("Save as...");
-		saveAs.Activated += saveCommands;
+		saveAs.Activated += SaveCommands;
 		fileMenu.Append(saveAs);
 
 		MenuItem loadFile = new MenuItem("Load");
-		loadFile.Activated += loadCommands;
+		loadFile.Activated += LoadCommands;
 		fileMenu.Append(loadFile);
 
 		MenuItem simpleView = new MenuItem("Simple View");
-		simpleView.Activated += switchView;
+		simpleView.Activated += SwitchView;
 		viewMenu.Append(simpleView);
 
 		MenuItem advancedView = new MenuItem("Advanced View");
-		advancedView.Activated += switchView;
+		advancedView.Activated += SwitchView;
 		viewMenu.Append(advancedView);
 
 		MenuItem tryConnect = new MenuItem("Connect");
-		tryConnect.Activated += connectionUI;
+		tryConnect.Activated += ShowConnectionUI;
 		connectionMenu.Append(tryConnect);
 
 		mb.Append(file);
 		mb.Append(view);
 		mb.Append(connectionStatus);
 
-		Statusbar statusbar = new Statusbar();
+		statusbar = new Statusbar();
 		statusbar.Push(1, "Ready");
 
 		HBox hbox = new HBox(false, 2);
@@ -100,10 +123,8 @@ public partial class MainWindow : Gtk.Window
 		commandQueueLabel.Text = "Command Queue";
 		commandQueueLabel.SetAlignment(0, 0);
 
-		Button sendButton = new Button();
-		sendButton.Clicked += delegate {
-			System.Console.WriteLine(CommandModel.Instance.ProgramToJSON());
-		};
+		sendButton = new Button();
+		sendButton.Clicked += OnSendButtonClicked;
 		sendButton.Label = "Send";
 
 		Alignment sendButtonAlign = new Alignment(1, 0, 0, 0);
@@ -128,25 +149,32 @@ public partial class MainWindow : Gtk.Window
 		ShowAll();
 	}
 
-	void switchView(object sender, EventArgs args)
+	void SwitchView(object sender, EventArgs args)
 	{
 
 	}
 
-	void loadCommands(object sender, EventArgs args)
+	void LoadCommands(object sender, EventArgs args)
 	{
 
 	}
 
-	void saveCommands(object sender, EventArgs args)
+	void SaveCommands(object sender, EventArgs args)
 	{
 		
 	}
 
-	void connectionUI(object sender, EventArgs args)
+	void ShowConnectionUI(object sender, EventArgs args)
 	{
 		ConnectionWindow w = new ConnectionWindow();
 		w.Show();
+	}
+
+	void OnSendButtonClicked(object sender, EventArgs e)
+	{
+		//sendButton.Sensitive = false;
+		System.Console.WriteLine(CommandModel.Instance.ProgramToJSON());
+
 	}
 
 	void OnCommandAdded(object sender, CommandEventArgs e)
