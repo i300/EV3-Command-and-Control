@@ -32,6 +32,7 @@ namespace EV3CommandAndControl
 			removeButton = new Button();
 			removeButton.Label = "Delete";
 			removeButton.Clicked += OnDeleteClicked;
+			removeButton.Sensitive = CommandModel.Instance.deleteEnabled;
 
 			hbox.PackStart(idLabel, false, false, 0);
 			hbox.PackStart(nameEntry, true, true, 0);

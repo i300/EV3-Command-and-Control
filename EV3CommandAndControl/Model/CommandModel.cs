@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Newtonsoft.Json;
 
 namespace EV3CommandAndControl
 {
@@ -31,12 +32,14 @@ namespace EV3CommandAndControl
 		Dictionary<int, Command> commands;
 		List<ProgramCommand> program;
 
+		public bool deleteEnabled = true;
+
 		public event EventHandler<CommandEventArgs> CommandAddedEvent;
 		public event EventHandler<CommandEventArgs> CommandChangedEvent;
 		public event EventHandler<CommandEventArgs> CommandRemovedEvent;
 
 		public event EventHandler<ProgramCommandEventArgs> ProgramCommandAddedEvent;
-		public event EventHandler<ProgramCommandEventArgs> ProgramCommandRemovedEvent;
+		public event EventHandler<EventArgs> ProgramCommandRemovedEvent;
 		
 		public CommandModel()
 		{
@@ -66,19 +69,22 @@ namespace EV3CommandAndControl
 			return program;
 		}
 
-		public Command NewCommand()
+		public Command NewCommand(string name="")
 		{
 			int newID = 0;
 
 			for (;;)
 			{
-				if (!commands.ContainsKey(++newID))
+				if (!commands.ContainsKey(newID))
 				{
 					break;
 				}
+
+				newID += 1;
 			}
 
 			Command c = new Command(newID);
+			c.name = name;
 
 			commands.Add(newID, c);
 
@@ -110,6 +116,19 @@ namespace EV3CommandAndControl
 			}
 		}
 
+		public void RemoveAllCommands()
+		{
+			if (commands.Keys.Count > 0)
+			{
+				// Loop through commands array backwards to avoid
+				// out of bounds exceptions when removing from the array
+				for (int i = commands.Keys.Count - 1; i >= 0; i--)
+				{
+					RemoveCommand(i);
+				}
+			}
+		}
+
 		public void RemoveCommand(int id)
 		{
 			if (commands.ContainsKey(id))
@@ -117,7 +136,34 @@ namespace EV3CommandAndControl
 				Command c = commands[id];
 				commands.Remove(id);
 
-				OnRaiseCommandRemovedEvent(new CommandEventArgs(c));;
+				// Flag to check if a program was removed or not
+				bool removedProgram = false;
+
+				// Loop through program array backwards to avoid
+				// out of bounds exceptions when removing from the array
+				for (int i = program.Count - 1; i >= 0; i--)
+				{
+					if (program[i].command.id == id)
+					{
+						program.Remove(program[i]);
+
+						removedProgram = true;
+					}
+				}
+
+				if (removedProgram)
+				{
+					// Reassign indexes for program list
+					for (int i = 0; i < program.Count; i++)
+					{
+						program[i].index = i;
+					}
+
+					// Raise program command removed
+					OnRaiseProgramCommandRemovedEvent(new EventArgs());
+				}
+
+				OnRaiseCommandRemovedEvent(new CommandEventArgs(c));
 			}
 		}
 
@@ -160,7 +206,7 @@ namespace EV3CommandAndControl
 			commandB.index = fromIndex;
 
 			// Raise event
-			OnRaiseProgramCommandRemovedEvent(new ProgramCommandEventArgs(new ProgramCommand(-1, null)));
+			OnRaiseProgramCommandRemovedEvent(new EventArgs());
 		}
 
 		public void RemoveCommandFromProgram(int index)
@@ -169,22 +215,19 @@ namespace EV3CommandAndControl
 			ProgramCommand command = program[index];
 			program.RemoveAt(index);
 
-			// Update stored indexes to reflect changes in program list
-			foreach (ProgramCommand c in program)
+			// Reassign indexes for program list
+			for (int i = 0; i < program.Count; i++)
 			{
-				if (c.index > index)
-				{
-					program[program.IndexOf(c)].index -= 1;
-				}
+				program[i].index = i;
 			}
 
 			// Raise program command removed event
-			OnRaiseProgramCommandRemovedEvent(new ProgramCommandEventArgs(command));
+			OnRaiseProgramCommandRemovedEvent(new EventArgs());
 		}
 
 		public string ProgramToJSON()
 		{
-			return Newtonsoft.Json.JsonConvert.SerializeObject(program);
+			return JsonConvert.SerializeObject(program);
 		}
 
 		protected virtual void OnRaiseCommandAddedEvent(CommandEventArgs e)
@@ -227,9 +270,9 @@ namespace EV3CommandAndControl
 			}
 		}
 
-		protected virtual void OnRaiseProgramCommandRemovedEvent(ProgramCommandEventArgs e)
+		protected virtual void OnRaiseProgramCommandRemovedEvent(EventArgs e)
 		{
-			EventHandler<ProgramCommandEventArgs> handler = ProgramCommandRemovedEvent;
+			EventHandler<EventArgs> handler = ProgramCommandRemovedEvent;
 
 			if (handler != null)
 			{
