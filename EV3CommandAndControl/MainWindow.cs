@@ -4,6 +4,7 @@ using Gtk;
 using EV3CommandAndControl;
 using EV3MessengerLib;
 
+
 public partial class MainWindow : Gtk.Window
 {
 	ScrollableView palleteView;
@@ -11,6 +12,10 @@ public partial class MainWindow : Gtk.Window
 
 	Statusbar statusbar;
 
+	RadioMenuItem simpleView;
+	RadioMenuItem advancedView;
+
+	Button addNewCommandButton;
 	Button sendButton;
 
 	List<CommandView> commandViews;
@@ -36,7 +41,7 @@ public partial class MainWindow : Gtk.Window
 	{
 		SetDefaultSize(900, 500);
 		SetPosition(WindowPosition.Center);
-		DeleteEvent += delegate { Application.Quit(); };
+		DeleteEvent += OnDeleteEvent;
 
 		model = CommandModel.Instance;
 		model.CommandAddedEvent += OnCommandAdded;
@@ -45,9 +50,6 @@ public partial class MainWindow : Gtk.Window
 		model.ProgramCommandRemovedEvent += OnProgramCommandRemoved;
 
 		messenger = MainWindow.MessengerInstance;
-
-		// TODO Remove this code-- for debugging only
-		//messenger.Connect("/dev/tty.EV3-SerialPort");
 
 		commandViews = new List<CommandView>();
 		programCommandViews = new List<ProgramCommandView>();
@@ -75,11 +77,11 @@ public partial class MainWindow : Gtk.Window
 		loadFile.Activated += LoadCommands;
 		fileMenu.Append(loadFile);
 
-		MenuItem simpleView = new MenuItem("Simple View");
+		simpleView = new RadioMenuItem("Simple");
 		simpleView.Activated += SwitchView;
 		viewMenu.Append(simpleView);
 
-		MenuItem advancedView = new MenuItem("Advanced View");
+		advancedView = new RadioMenuItem(simpleView, "Advanced");
 		advancedView.Activated += SwitchView;
 		viewMenu.Append(advancedView);
 
@@ -100,7 +102,7 @@ public partial class MainWindow : Gtk.Window
 
 		VBox leftBox = new VBox(false, 2);
 
-		Button addNewCommandButton = new Button();
+		addNewCommandButton = new Button();
 		addNewCommandButton.Label = "Create New Command";
 		addNewCommandButton.Clicked += delegate { model.NewCommand(); };
 
@@ -147,11 +149,40 @@ public partial class MainWindow : Gtk.Window
 		Add(mainBox);
 
 		ShowAll();
+
+		simpleView.Activate();
+
+		// TODO Remove this code-- for debugging only
+		/*if (messenger.Connect("/dev/tty.EV3-SerialPort"))
+		{
+			statusbar.Push(1, "Connected to EV3");
+		}
+		else {
+			statusbar.Push(1, "Connection Failed");
+		}*/
 	}
 
 	void SwitchView(object sender, EventArgs args)
 	{
+		if (simpleView.Active)
+		{
+			model.RemoveAllCommands();
+			model.deleteEnabled = false;
 
+			model.NewCommand("Forward");
+			model.NewCommand("Reverse");
+			model.NewCommand("Left");
+			model.NewCommand("Right");
+
+			addNewCommandButton.Sensitive = false;
+		}
+		else if (advancedView.Active)
+		{
+			model.RemoveAllCommands();
+			model.deleteEnabled = true;
+
+			addNewCommandButton.Sensitive = true;
+		}
 	}
 
 	void LoadCommands(object sender, EventArgs args)
@@ -172,9 +203,24 @@ public partial class MainWindow : Gtk.Window
 
 	void OnSendButtonClicked(object sender, EventArgs e)
 	{
-		//sendButton.Sensitive = false;
-		System.Console.WriteLine(CommandModel.Instance.ProgramToJSON());
+		if (messenger.IsConnected)
+		{
+			sendButton.Sensitive = false;
+			statusbar.Push(1, "Sending to EV3...");
 
+			foreach (ProgramCommand c in model.GetProgram())
+			{
+				messenger.SendMessage("abc", c.command.id);
+				messenger.SendMessage("abc", c.parameter);
+			}
+
+			statusbar.Pop(1);
+			statusbar.Push(1, "Sent Program to EV3");
+			sendButton.Sensitive = true;
+		}
+		else {
+			statusbar.Push(1, "Sending Failed");
+		}
 	}
 
 	void OnCommandAdded(object sender, CommandEventArgs e)
@@ -193,14 +239,6 @@ public partial class MainWindow : Gtk.Window
 				palleteView.RemoveWidget(view);
 			}
 		}
-
-		foreach (ProgramCommandView view in programCommandViews)
-		{
-			if (view.id == e.command.id)
-			{
-				queueView.RemoveWidget(view);
-			}
-		}
 	}
 
 	void OnProgramCommandAdded(object sender, ProgramCommandEventArgs e)
@@ -210,7 +248,7 @@ public partial class MainWindow : Gtk.Window
 		programCommandViews.Add(view);
 	}
 
-	void OnProgramCommandRemoved(object sender, ProgramCommandEventArgs e)
+	void OnProgramCommandRemoved(object sender, EventArgs e)
 	{
 		foreach (ProgramCommandView view in programCommandViews)
 		{
@@ -219,7 +257,8 @@ public partial class MainWindow : Gtk.Window
 
 		programCommandViews.Clear();
 
-		foreach (ProgramCommand command in model.GetProgram())
+		List<ProgramCommand> program = model.GetProgram();
+		foreach (ProgramCommand command in program)
 		{
 			ProgramCommandView view = new ProgramCommandView(command);
 			queueView.AddWidget(view);
@@ -229,6 +268,8 @@ public partial class MainWindow : Gtk.Window
 
 	protected void OnDeleteEvent(object sender, DeleteEventArgs a)
 	{
+		MainWindow.MessengerInstance.Disconnect();
+
 		Application.Quit();
 		a.RetVal = true;
 	}
