@@ -199,7 +199,19 @@ public partial class MainWindow : Gtk.Window
 	void ShowConnectionUI(object sender, EventArgs args)
 	{
 		ConnectionWindow w = new ConnectionWindow();
+		w.ConnectionUpdatedEvent += OnConnectionUpdated;
 		w.Show();
+	}
+
+	void OnConnectionUpdated(object sender, ConnectionEventArgs e)
+	{
+		if (e.connected)
+		{
+			statusbar.Push(1, "Connected to EV3");
+		}
+		else {
+			statusbar.Push(1, "Connection Failed");
+		}
 	}
 
 	void OnSendButtonClicked(object sender, EventArgs e)
@@ -217,6 +229,7 @@ public partial class MainWindow : Gtk.Window
 				messenger.SendMessage("abc", c.parameter);
 
 				EV3Message message;
+				Console.WriteLine("Waiting for handshake...");
 				for (;;)
 				{
 					message = messenger.ReadMessage();
@@ -226,6 +239,7 @@ public partial class MainWindow : Gtk.Window
 					}
 					Thread.Sleep(10);
 				}
+				Console.WriteLine("Handshake Recieved");
 			}
 
 			statusbar.Pop(1);

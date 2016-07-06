@@ -5,6 +5,16 @@ using EV3MessengerLib;
 
 namespace EV3CommandAndControl
 {
+	public class ConnectionEventArgs : EventArgs
+	{
+		public bool connected;
+
+		public ConnectionEventArgs(bool connected)
+		{
+			this.connected = connected;	
+		}
+	}
+
 	public class ConnectionWindow : Gtk.Window
 	{
 		TreeView portList;
@@ -12,10 +22,12 @@ namespace EV3CommandAndControl
 
 		string selectedRow;
 
+		public EventHandler<ConnectionEventArgs> ConnectionUpdatedEvent;
+
 		public ConnectionWindow():base(Gtk.WindowType.Toplevel)
 		{
 			//MainWindow.MessengerInstance;
-			SetDefaultSize(900, 500);
+			SetDefaultSize(400, 300);
 			this.BorderWidth = 5;
 			VBox mainBox = new VBox(false, 2);
 			Label connectLabel = new Label("Connections");
@@ -40,7 +52,7 @@ namespace EV3CommandAndControl
 
 			Button connectButton = new Button("Connect");
 			connectButton.Clicked += delegate {
-				MainWindow.MessengerInstance.Connect(selectedRow);
+				OnRaiseConnectionUpdatedEvent(new ConnectionEventArgs(MainWindow.MessengerInstance.Connect(selectedRow)));
 			};
 
 			Button okButton = new Button("Ok");
@@ -84,7 +96,10 @@ namespace EV3CommandAndControl
 				}
 			}
 			else {
-				model.AppendValues(portNames);
+				foreach (string name in portNames)
+				{
+					model.AppendValues(name);
+				}
 			}
 
 
@@ -98,6 +113,16 @@ namespace EV3CommandAndControl
 			if (view.Model.GetIter(out iter, args.Path))
 			{
 				selectedRow = (string)view.Model.GetValue(iter, 0);
+			}
+		}
+
+		protected virtual void OnRaiseConnectionUpdatedEvent(ConnectionEventArgs e)
+		{
+			EventHandler<ConnectionEventArgs> handler = ConnectionUpdatedEvent;
+
+			if (handler != null)
+			{
+				handler(this, e);
 			}
 		}
 	}
