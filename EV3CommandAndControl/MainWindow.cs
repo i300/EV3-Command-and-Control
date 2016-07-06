@@ -5,6 +5,84 @@ using EV3CommandAndControl;
 using EV3MessengerLib;
 using System.Threading;
 
+class SendProgramWorker
+{
+	EV3Messenger messenger;
+	List<ProgramCommand> program;
+
+	public EventHandler<EventArgs> OnFinishedEvent;
+
+	public SendProgramWorker(EV3Messenger m, List<ProgramCommand> p)
+	{
+		this.messenger = m;
+		this.program = p;
+	}
+
+	public void Send()
+	{
+		int _commandSent = 0;
+		foreach (ProgramCommand c in program)
+		{
+			messenger.SendMessage("abc", c.command.id);
+			Thread.Sleep(1000);
+			messenger.SendMessage("abc", c.parameter);
+			Thread.Sleep(500);
+
+			Console.WriteLine("Waiting for handshake...");
+			EV3Message message;
+			for (;;)
+			{
+				message = messenger.ReadMessage();
+				if (message != null)
+				{
+					if (message.ValueAsText == c.command.id.ToString() + "+" + c.parameter.ToString())
+					{
+						Console.WriteLine("Handshake `" + message.ValueAsText + "` Recieved");
+						break;
+					}
+				}
+				Thread.Sleep(10);
+
+				if (_shouldStop)
+				{
+					break;
+				}
+			}
+
+			_commandSent++;
+
+			if (_shouldStop)
+			{
+				Console.WriteLine("CANCELLING THREAD");
+				Console.WriteLine("CANCELLING THREAD");
+				Console.WriteLine("CANCELLING THREAD");
+
+				break;
+			}
+		}
+
+		Console.WriteLine("Sent " + _commandSent.ToString() + " commands.");
+
+		OnRaiseOnFinishedEvent(new EventArgs());
+	}
+
+	void OnRaiseOnFinishedEvent(EventArgs e)
+	{
+		EventHandler<EventArgs> handler = OnFinishedEvent;
+
+		if (handler != null)
+		{
+			handler(this, e);
+		}
+	}
+
+	public void RequestStop()
+	{
+		_shouldStop = true;
+	}
+
+	private volatile bool _shouldStop;
+}
 
 public partial class MainWindow : Gtk.Window
 {
@@ -24,7 +102,7 @@ public partial class MainWindow : Gtk.Window
 
 	CommandModel model;
 
-	private static EV3Messenger messenger;
+	private static volatile EV3Messenger messenger;
 
 	public static EV3Messenger MessengerInstance
 	{
@@ -126,6 +204,8 @@ public partial class MainWindow : Gtk.Window
 		commandQueueLabel.Text = "Command Queue";
 		commandQueueLabel.SetAlignment(0, 0);
 
+		HBox sendHBox = new HBox(false, 2);
+
 		sendButton = new Button();
 		sendButton.Clicked += OnSendButtonClicked;
 		sendButton.Label = "Send";
@@ -133,11 +213,16 @@ public partial class MainWindow : Gtk.Window
 		Alignment sendButtonAlign = new Alignment(1, 0, 0, 0);
 		sendButtonAlign.Add(sendButton);
 
+
+
+		//sendHBox.PackStart();
+		sendHBox.PackEnd(sendButtonAlign, true, true, 0);
+
 		queueView = new ScrollableView();
 
 		rightBox.PackStart(commandQueueLabel, false, false, 0);
 		rightBox.PackStart(queueView, true, true, 0);
-		rightBox.PackEnd(sendButtonAlign, false, false, 0);
+		rightBox.PackEnd(sendHBox, false, false, 0);
 
 		hbox.PackStart(leftBox, true, true, 0);
 		hbox.PackStart(new VSeparator(), false, false, 0);
@@ -152,15 +237,6 @@ public partial class MainWindow : Gtk.Window
 		ShowAll();
 
 		simpleView.Activate();
-
-		// TODO Remove this code-- for debugging only
-		/*if (messenger.Connect("/dev/tty.EV3-SerialPort"))
-		{
-			statusbar.Push(1, "Connected to EV3");
-		}
-		else {
-			statusbar.Push(1, "Connection Failed");
-		}*/
 	}
 
 	void SwitchView(object sender, EventArgs args)
@@ -214,41 +290,42 @@ public partial class MainWindow : Gtk.Window
 		}
 	}
 
+
+	SendProgramWorker worker;
+	Thread sendThread;
 	void OnSendButtonClicked(object sender, EventArgs e)
 	{
-		if (messenger.IsConnected)
+		Button self = (Button)sender;
+		if (self.Label == "Cancel")
 		{
-			sendButton.Sensitive = false;
-			statusbar.Push(1, "Sending to EV3...");
-
-			List<ProgramCommand> program = model.GetProgram();
-			foreach (ProgramCommand c in program)
+			if (worker != null)
 			{
-				Console.WriteLine("id: " + c.command.id + " param: " + c.parameter);
-				messenger.SendMessage("abc", c.command.id);
-				messenger.SendMessage("abc", c.parameter);
+				worker.RequestStop();
+				while (sendThread.IsAlive) ;
 
-				EV3Message message;
-				Console.WriteLine("Waiting for handshake...");
-				for (;;)
-				{
-					message = messenger.ReadMessage();
-					if (message != null)
-					{
-						break;
-					}
-					Thread.Sleep(10);
-				}
-				Console.WriteLine("Handshake Recieved");
 			}
-
-			statusbar.Pop(1);
-			statusbar.Push(1, "Sent Program to EV3");
-			sendButton.Sensitive = true;
 		}
 		else {
-			statusbar.Push(1, "Sending Failed");
+			if (messenger.IsConnected)
+			{
+				worker = new SendProgramWorker(messenger, model.GetProgram());
+				worker.OnFinishedEvent += OnFinishedSendingProgram;
+
+				sendThread = new Thread(worker.Send);
+				sendThread.Start();
+
+				self.Label = "Cancel";
+
+				statusbar.Push(1, "Sending Program...");
+			}
 		}
+	}
+
+	void OnFinishedSendingProgram(object sender, EventArgs e)
+	{
+		sendButton.Label = "Send";
+
+		statusbar.Push(1, "Finished Sending Program");
 	}
 
 	void OnCommandAdded(object sender, CommandEventArgs e)

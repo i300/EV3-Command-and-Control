@@ -52,6 +52,7 @@ namespace EV3CommandAndControl
 
 			Button connectButton = new Button("Connect");
 			connectButton.Clicked += delegate {
+				if (MainWindow.MessengerInstance.IsConnected) MainWindow.MessengerInstance.Disconnect();
 				OnRaiseConnectionUpdatedEvent(new ConnectionEventArgs(MainWindow.MessengerInstance.Connect(selectedRow)));
 			};
 
