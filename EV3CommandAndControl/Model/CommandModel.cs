@@ -69,6 +69,24 @@ namespace EV3CommandAndControl
 			return program;
 		}
 
+		public void SetCommands(Dictionary<int, Command> c)
+		{
+			RemoveAllCommands();
+
+			foreach (int index in c.Keys)
+			{
+				NewCommand(c[index].name);
+			}
+		}
+
+		public void SetProgram(List<ProgramCommand> p)
+		{
+			foreach (ProgramCommand c in p)
+			{
+				AddCommandToProgram(GetCommand(c.command.id), c.parameter);
+			}
+		}
+
 		public Command NewCommand(string name="")
 		{
 			int newID = 0;
@@ -167,9 +185,10 @@ namespace EV3CommandAndControl
 			}
 		}
 
-		public void AddCommandToProgram(Command c)
+		public void AddCommandToProgram(Command c, int param=0)
 		{
 			ProgramCommand command = new ProgramCommand(program.Count, c);
+			command.parameter = param;
 			program.Add(command);
 
 			OnRaiseProgramCommandAddedEvent(new ProgramCommandEventArgs(command));

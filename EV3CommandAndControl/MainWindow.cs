@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using Gtk;
 using EV3CommandAndControl;
 using EV3MessengerLib;
@@ -173,7 +175,7 @@ public partial class MainWindow : Gtk.Window
 		mb.Append(connectionStatus);
 
 		statusbar = new Statusbar();
-		statusbar.Push(1, "Ready");
+		statusbar.Push(1, "Disconnected");
 
 		HBox hbox = new HBox(false, 2);
 
@@ -212,8 +214,6 @@ public partial class MainWindow : Gtk.Window
 
 		Alignment sendButtonAlign = new Alignment(1, 0, 0, 0);
 		sendButtonAlign.Add(sendButton);
-
-
 
 		//sendHBox.PackStart();
 		sendHBox.PackEnd(sendButtonAlign, true, true, 0);
@@ -264,18 +264,69 @@ public partial class MainWindow : Gtk.Window
 
 	void LoadCommands(object sender, EventArgs args)
 	{
+		FileChooserDialog filechooser = new FileChooserDialog("Choose the file to open",
+			this,
+			FileChooserAction.Open,
+			"Cancel", ResponseType.Cancel,
+			"Open", ResponseType.Accept);
 
+		if (filechooser.Run() == (int)ResponseType.Accept)
+		{
+			String loadedJson = "";
+			// Open the text file using a stream reader.
+			using (StreamReader sr = new StreamReader(filechooser.Filename))
+			{
+				// Read the stream to a string, and write the string to the console.
+				String line = sr.ReadToEnd();
+				loadedJson += line;
+			}
+
+			List<string> payload = JsonConvert.DeserializeObject<List<string>>(loadedJson);
+
+			Dictionary<int, Command> commands = JsonConvert.DeserializeObject<Dictionary<int, Command>>(payload[0]);
+			List<ProgramCommand> program = JsonConvert.DeserializeObject<List<ProgramCommand>>(payload[1]);
+
+			advancedView.Activate();
+
+			model.SetCommands(commands);
+			model.SetProgram(program);
+		}
+
+		filechooser.Destroy();
 	}
 
 	void SaveCommands(object sender, EventArgs args)
 	{
-		
+		FileChooserDialog filechooser = new FileChooserDialog("Choose a location to save",
+			this,
+	 		FileChooserAction.Save,
+			"Cancel", ResponseType.Cancel,
+			"Save", ResponseType.Accept);
+
+		string commandsJSON = JsonConvert.SerializeObject(model.GetCommands());
+		string programJSON = JsonConvert.SerializeObject(model.GetProgram());
+
+		List<string> payload = new List<string>();
+		payload.Add(commandsJSON);
+		payload.Add(programJSON);
+
+		string payloadJSON = JsonConvert.SerializeObject(payload);
+
+		if (filechooser.Run() == (int)ResponseType.Accept)
+		{
+			File.WriteAllText(filechooser.Filename, payloadJSON);
+		}
+
+		filechooser.Destroy();
 	}
 
 	void ShowConnectionUI(object sender, EventArgs args)
 	{
 		ConnectionWindow w = new ConnectionWindow();
 		w.ConnectionUpdatedEvent += OnConnectionUpdated;
+		w.DisconnectedEvent += delegate {
+			statusbar.Push(1, "Disconnected");
+		};
 		w.Show();
 	}
 

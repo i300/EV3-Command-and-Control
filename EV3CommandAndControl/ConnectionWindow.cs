@@ -23,6 +23,7 @@ namespace EV3CommandAndControl
 		string selectedRow;
 
 		public EventHandler<ConnectionEventArgs> ConnectionUpdatedEvent;
+		public EventHandler<EventArgs> DisconnectedEvent;
 
 		public ConnectionWindow():base(Gtk.WindowType.Toplevel)
 		{
@@ -56,6 +57,19 @@ namespace EV3CommandAndControl
 				OnRaiseConnectionUpdatedEvent(new ConnectionEventArgs(MainWindow.MessengerInstance.Connect(selectedRow)));
 			};
 
+			Button disconnectButton = new Button("Disconnect");
+			disconnectButton.Clicked += delegate {
+				if (MainWindow.MessengerInstance.IsConnected)
+				{
+					MainWindow.MessengerInstance.Disconnect();
+					OnRaiseDisconnectedEvent(new EventArgs());
+				}
+			};
+
+			HBox connectDisconnectBox = new HBox(false, 0);
+			connectDisconnectBox.PackStart(connectButton, false, false, 0);
+			connectDisconnectBox.PackEnd(disconnectButton, false, false, 0);
+
 			Button okButton = new Button("Ok");
 			okButton.Clicked += delegate {
 				Destroy();
@@ -67,7 +81,7 @@ namespace EV3CommandAndControl
 			topHbox.PackStart(connectLabel, false, false, 0);
 			topHbox.PackEnd(reloadButton, false, false, 0);
 
-			botHbox.PackStart(connectButton, false, false, 0);
+			botHbox.PackStart(connectDisconnectBox, false, false, 0);
 			botHbox.PackEnd(okButton, false, false, 0);
 
 			mainBox.PackStart(topHbox, false, false, 0);
@@ -120,6 +134,16 @@ namespace EV3CommandAndControl
 		protected virtual void OnRaiseConnectionUpdatedEvent(ConnectionEventArgs e)
 		{
 			EventHandler<ConnectionEventArgs> handler = ConnectionUpdatedEvent;
+
+			if (handler != null)
+			{
+				handler(this, e);
+			}
+		}
+
+		protected virtual void OnRaiseDisconnectedEvent(EventArgs e)
+		{
+			EventHandler<EventArgs> handler = DisconnectedEvent;
 
 			if (handler != null)
 			{
