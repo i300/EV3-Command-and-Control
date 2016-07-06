@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Gtk;
 using EV3CommandAndControl;
 using EV3MessengerLib;
+using System.Threading;
 
 
 public partial class MainWindow : Gtk.Window
@@ -208,10 +209,23 @@ public partial class MainWindow : Gtk.Window
 			sendButton.Sensitive = false;
 			statusbar.Push(1, "Sending to EV3...");
 
-			foreach (ProgramCommand c in model.GetProgram())
+			List<ProgramCommand> program = model.GetProgram();
+			foreach (ProgramCommand c in program)
 			{
+				Console.WriteLine("id: " + c.command.id + " param: " + c.parameter);
 				messenger.SendMessage("abc", c.command.id);
 				messenger.SendMessage("abc", c.parameter);
+
+				EV3Message message;
+				for (;;)
+				{
+					message = messenger.ReadMessage();
+					if (message != null)
+					{
+						break;
+					}
+					Thread.Sleep(10);
+				}
 			}
 
 			statusbar.Pop(1);

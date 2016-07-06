@@ -7,7 +7,10 @@ namespace EV3CommandAndControl
 {
 	public class ConnectionWindow : Gtk.Window
 	{
+		TreeView portList;
 		ListStore model;
+
+		string selectedRow;
 
 		public ConnectionWindow():base(Gtk.WindowType.Toplevel)
 		{
@@ -16,41 +19,42 @@ namespace EV3CommandAndControl
 			this.BorderWidth = 5;
 			VBox mainBox = new VBox(false, 2);
 			Label connectLabel = new Label("Connections");
-			Button reloadPorts = new Button("Reload");
 
-			TreeView portList = new TreeView(model);
+			portList = new TreeView(model);
 			portList.RulesHint = true;
 			portList.RowActivated += RowActivated;
 
-			TreeViewColumn ports = new TreeViewColumn();
-			ports.Title = "Ports";
-			Gtk.CellRendererText portNameCell = new Gtk.CellRendererText();
-			ports.PackStart(portNameCell, true);
-			portList.AppendColumn(ports);
+			CellRendererText rendererText = new CellRendererText();
+			TreeViewColumn column = new TreeViewColumn("Port", rendererText, "text", 0);
+			column.SortColumnId = 0;
+			portList.AppendColumn(column);
 
-			ports.AddAttribute(portNameCell, "text", 0);
+			model = new ListStore(typeof(String));
+			portList.Model = model;
 
-			string[] listOfPortNames = System.IO.Ports.SerialPort.GetPortNames();
-
-			ListStore portListStore = new ListStore(typeof(String));
-			portList.Model = portListStore;
-
-			var sortedPortNames = from x in listOfPortNames where x.Contains("tty.") select x;
-
-			foreach (string name in sortedPortNames)
+			Button reloadButton = new Button("Reload");
+			reloadButton.Clicked += delegate
 			{
-				portListStore.AppendValues(name);
-			}
+				ReloadPorts();
+			};
 
-			Button connectToPort = new Button("Connect");
+			Button connectButton = new Button("Connect");
+			connectButton.Clicked += delegate {
+				MainWindow.MessengerInstance.Connect(selectedRow);
+			};
+
 			Button okButton = new Button("Ok");
+			okButton.Clicked += delegate {
+				Destroy();
+			};
+
 			HBox topHbox = new HBox(false, 2); 
 			HBox botHbox = new HBox(false, 2);
 
 			topHbox.PackStart(connectLabel, false, false, 0);
-			topHbox.PackEnd(reloadPorts, false, false, 0);
+			topHbox.PackEnd(reloadButton, false, false, 0);
 
-			botHbox.PackStart(connectToPort, false, false, 0);
+			botHbox.PackStart(connectButton, false, false, 0);
 			botHbox.PackEnd(okButton, false, false, 0);
 
 			mainBox.PackStart(topHbox, false, false, 0);
@@ -59,19 +63,41 @@ namespace EV3CommandAndControl
 
 			Add(mainBox);
 			ShowAll();
+
+			ReloadPorts();
 		}
 
-		void AddColumns(TreeView treeview)
+		void ReloadPorts()
 		{
+			model.Clear();
+
+			string[] portNames = System.IO.Ports.SerialPort.GetPortNames();
+
+			string os_platform = System.Environment.OSVersion.Platform.ToString();
+			if (os_platform == "Unix")
+			{
+				var sortedPortNames = from x in portNames where x.Contains("tty.") select x;
+
+				foreach (string name in sortedPortNames)
+				{
+					model.AppendValues(name);
+				}
+			}
+			else {
+				model.AppendValues(portNames);
+			}
+
+
+			portList.Model = model;
 		}
+
 		void RowActivated(object sender, RowActivatedArgs args)
 		{
 			TreeIter iter;
 			TreeView view = (TreeView)sender;
 			if (view.Model.GetIter(out iter, args.Path))
 			{
-				string row = (string)view.Model.GetValue(iter, 0);
-				MainWindow.MessengerInstance.Connect(row);
+				selectedRow = (string)view.Model.GetValue(iter, 0);
 			}
 		}
 	}
