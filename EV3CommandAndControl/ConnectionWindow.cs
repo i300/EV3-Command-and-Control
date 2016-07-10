@@ -35,7 +35,13 @@ namespace EV3CommandAndControl
 
 			portList = new TreeView(model);
 			portList.RulesHint = true;
-			portList.RowActivated += RowActivated;
+			portList.Selection.Changed += delegate {
+				TreeIter iter;
+				if (portList.Selection.GetSelected(out iter))
+				{
+					selectedRow = (string)portList.Model.GetValue(iter, 0);
+				}
+			};
 
 			CellRendererText rendererText = new CellRendererText();
 			TreeViewColumn column = new TreeViewColumn("Port", rendererText, "text", 0);
@@ -53,8 +59,16 @@ namespace EV3CommandAndControl
 
 			Button connectButton = new Button("Connect");
 			connectButton.Clicked += delegate {
-				if (MainWindow.MessengerInstance.IsConnected) MainWindow.MessengerInstance.Disconnect();
-				OnRaiseConnectionUpdatedEvent(new ConnectionEventArgs(MainWindow.MessengerInstance.Connect(selectedRow)));
+				try
+				{
+					if (MainWindow.MessengerInstance.IsConnected) MainWindow.MessengerInstance.Disconnect();
+					OnRaiseConnectionUpdatedEvent(new ConnectionEventArgs(MainWindow.MessengerInstance.Connect(selectedRow)));
+				}
+				catch (Exception e)
+				{
+					Console.WriteLine("Caught exception while connecting: " + e.Message);
+					Console.WriteLine(e.StackTrace);
+				}
 			};
 
 			Button disconnectButton = new Button("Disconnect");
@@ -117,18 +131,7 @@ namespace EV3CommandAndControl
 				}
 			}
 
-
 			portList.Model = model;
-		}
-
-		void RowActivated(object sender, RowActivatedArgs args)
-		{
-			TreeIter iter;
-			TreeView view = (TreeView)sender;
-			if (view.Model.GetIter(out iter, args.Path))
-			{
-				selectedRow = (string)view.Model.GetValue(iter, 0);
-			}
 		}
 
 		protected virtual void OnRaiseConnectionUpdatedEvent(ConnectionEventArgs e)

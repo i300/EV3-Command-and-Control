@@ -150,11 +150,18 @@ public partial class MainWindow : Gtk.Window
 		MenuItem connectionStatus = new MenuItem("Connection Status");
 		connectionStatus.Submenu = connectionMenu;
 
-		MenuItem saveAs = new MenuItem("Save as...");
-		saveAs.Activated += SaveCommands;
-		fileMenu.Append(saveAs);
+		AccelGroup agr = new AccelGroup();
+		AddAccelGroup(agr);
 
-		MenuItem loadFile = new MenuItem("Load");
+		ImageMenuItem save = new ImageMenuItem(Stock.Save, agr);
+		save.AddAccelerator("activate", agr, new AccelKey(
+			Gdk.Key.S, Gdk.ModifierType.ControlMask, AccelFlags.Visible));
+		save.Activated += SaveCommands;
+		fileMenu.Append(save);
+
+		ImageMenuItem loadFile = new ImageMenuItem(Stock.Open, agr);
+		loadFile.AddAccelerator("activate", agr, new AccelKey(
+			Gdk.Key.o, Gdk.ModifierType.ControlMask, AccelFlags.Visible));
 		loadFile.Activated += LoadCommands;
 		fileMenu.Append(loadFile);
 
